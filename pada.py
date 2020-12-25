@@ -26,6 +26,7 @@ import json
 import logging
 import os
 import sys
+import re
 
 import pada.align
 import pada.framedrop
@@ -35,14 +36,26 @@ import pada.logging
 
 APP_NAME = "pada"
 APP_AUTHOR = "matthewearl"
-CONFIG_FILE_NAME = "pada.conf"
+CONFIG_FILE_NAME = "./pada.conf"
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--debug', help='Print debug information',
                         action='store_true')
-    parser.add_argument('--config', help='Config file path', type=unicode,
+    parser.add_argument('--config', help='Config file path', type=str,
                         default=CONFIG_FILE_NAME)
     parser.add_argument('--aligned-path',
                         help='Path where aligned images will be stored')
@@ -51,10 +64,10 @@ def parse_args():
                              'images.')
     parser.add_argument('--predictor-path',
                         help='DLib face predictor dat file',
-                        type=unicode)
+                        type=str)
     parser.add_argument('--filtered-files',
                         help='File to write filtered files to',
-                        type=unicode)
+                        type=str)
 
     subparsers = parser.add_subparsers(help='Sub-command help')
 
@@ -66,7 +79,7 @@ def parse_args():
     align_parser = subparsers.add_parser('align',
                                          help='align a set of images')
     align_parser.add_argument('--input-glob',
-                              help='Input files glob', type=unicode)
+                              help='Input files glob', type=str)
     align_parser.add_argument('--img-thresh',
                               help='Max duplicate frame delta', type=float)
     align_parser.set_defaults(cmd='align')
@@ -113,7 +126,7 @@ if __name__ == "__main__":
 
     if cli_args.cmd == "print_config_paths":
         for config_path in config_paths:
-            print config_path
+            print (config_path)
         sys.exit(0)
 
     # Attempt to open each config file, and update the `cfg` dict with each
@@ -141,7 +154,7 @@ if __name__ == "__main__":
                                      os.path.expanduser(cfg['predictor_path']))
     if cli_args.cmd == "align":
         pada.align.align_images(
-            input_files=sorted(glob.glob(cfg['input_glob'])),
+            input_files=sorted(glob.glob(cfg['input_glob']), key=natural_keys),
             out_path=cfg['aligned_path'],
             out_extension=cfg['aligned_extension'],
             landmark_finder=landmark_finder,

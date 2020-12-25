@@ -45,7 +45,8 @@ def read_ims(names, img_thresh):
     for n in names:
         logger.debug("Reading image %s", n)
         im = cv2.imread(n)
-        if prev_im is None or numpy.linalg.norm(prev_im - im) > img_thresh:
+        if (prev_im is None or prev_im.shape != im.shape or numpy.linalg.norm(prev_im - im) > img_thresh):
+        # if prev_im is None or numpy.linalg.norm(prev_im - im) > img_thresh:
             yield (n, im)
             count += 1
             prev_im = im

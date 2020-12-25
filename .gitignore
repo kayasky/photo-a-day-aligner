@@ -1,3 +1,5 @@
 input/
 aligned/
+filtered.txt
+pada/__pycache__/
 shape_predictor_68_face_landmarks.dat
